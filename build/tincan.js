@@ -1947,7 +1947,7 @@ TinCan client library
             function requestComplete (fakeStatus) {
                 self.log("requestComplete: " + finished + ", xhr.status: " + xhr.status);
                 var notFoundOk,
-                    httpStatus;
+                    httpStatus,key, item, itemkey, data;
 
                 //
                 // XDomainRequest doesn't give us a way to get the status,
@@ -2000,6 +2000,32 @@ TinCan client library
                         if (cfg.callback) {
                             cfg.callback(httpStatus, xhr);
                         }
+                        
+                        // store fail request
+                        key = window.tincan.actor.mbox_sha1sum;
+                        item = localStorage.getItem(key);
+                        if(!item){
+                            item = {};
+                        } else {
+                            item = JSON.parse(item);
+                        }
+                        itemkey = "noid";
+                        if(cfg.params){
+                            itemkey = cfg.params.statementId;
+                        } else {
+                            data = JSON.parse(cfg.data);
+                            if(typeof data[0] === "object"){
+                                itemkey = data[0].id;
+                            }
+                        }
+                        if(!item.hasOwnProperty(itemkey)){
+                            item[itemkey] = {
+                                lrs: self,
+                                cfg: cfg
+                            };
+                            localStorage.setItem(key, JSON.stringify(item));
+                        }
+
                         return requestCompleteResult;
                     }
                 }
